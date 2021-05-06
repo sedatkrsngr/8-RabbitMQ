@@ -1,0 +1,21 @@
+Rabbitmq 2 yöntemle kurulabilir.
+
+1-CloudAMQP
+2-Docker
+
+1-CloudAMQP
+
+-CloudAMQP hesabına üye oluruz. Ben github ile bağlandım
+-Adımları geçtikten sonra new instance diyip name alanını istediğimiz şekilde doldurup plan olarakta ücretsiz olan 
+Little Lemur(Free) seçip select region diyoruz, ardından herhangi bir datacenter seçiyoruz ve ardından review diyip devam ediyoruz ve
+ardından create instance diyip bitiriyoruz.
+-Exchangeleri,mesajları,kuyruktaki mesajları,kaç tane mesaj var gibi bilgileri RabbitMq Manegerdan izleyebiliyoruz.
+-RabbitMq nasıl bağlanacağımızın bilgisi ise verdiğimiz rabbitmq ismine tıklayarak görebiliriz,AMQP URL bağlanacağımız adres. Örn. Gerçek hayatta ücretsizi kullandık sonra canlıya almak istiyorsak.
+Update instance diyerek devam ediyoruz.
+
+2-Docker
+-Dockerhub sitesinde rabbitmq diyerek aratıyoruz. Ve içerisinde management ui da olan bir çekme sorgusu alalım. Eğer management olanı almazsak manager görünmez
+-docker run -d -p 5672:5672 -p 15672:15672 --name rabbitmqconteiner rabbitmq:3.8.16-management
+- ilk 5672 rabbitmq portu, 15672 ise managerui portu. bu portlardan önce verdiklerim ise benim bilgisayarda projemi ayağa kaldıracağım portlar
+
+ama projede Cloud AMQP kullanıcaz
