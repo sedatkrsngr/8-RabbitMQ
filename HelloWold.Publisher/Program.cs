@@ -18,13 +18,7 @@ namespace HelloWold.Publisher//producer diğer adı bu kısımda mesajı yayınl
 
             using (var connection = factory.CreateConnection())
             {
-                var channel = connection.CreateModel();//yeni bir kanal oluşturuyoruz
-
-                //Header Exchange de  routekeyler mesajın headerında key value şeklinde producer(publish)den gönderilir. Kuyruk yine consumer tarafında oluşması daha mantıklı Bu sfer verileri alırken key value değerleri gönderirken consumer(subscriber tarafında) headerda gönderdiğimiz verileri alabilmek için o tarftada gönderdiğimiz key value değerleri kuyrukları çağırmak için yazılmalı. O tarafta ekstradan gönderilen key value değerlerinin hepsini mi kuyruğun headerinde arasın yoksa sadece herhangi biri olursa da o kuyruğu dinlesin mi? İşte bunun için "x-match" key var. Eğer "all" olarak value değerini  verirsek consumer tarafında. Consumerda Gönderdiğimiz tüm key value değerlerine sahip kuyruğu dinler. "any" yaparsak ise sadece bir tanesi olsa dahi o kuyruğu dinleyebiliriz.
-                //Dictionary<string, object> headers = new Dictionary<string, object>();
-                //headers.Add("format", "pdf");
-                //headers.Add("shape", "a4");
-                //headers.Add("x-match", "all");
+                var channel = connection.CreateModel();
 
                 channel.ExchangeDeclare("logs-header",type:ExchangeType.Headers,durable:true);
 
@@ -34,6 +28,7 @@ namespace HelloWold.Publisher//producer diğer adı bu kısımda mesajı yayınl
 
                 var properties = channel.CreateBasicProperties();
                 properties.Headers = headers;
+                properties.Persistent = true;//Artık mesajlar kalıcı hale geliyor Header exchange kullanmasakta header kısmında bu bilgiyi gönderirsek mesajlar kalıcı hale gelir. Bu şekilde rabbit mq restart yese dahi mesajlar kaybolmayacak
 
                 channel.BasicPublish("logs-header", string.Empty, properties, Encoding.UTF8.GetBytes("header mesajım"));//exchane,routeKey,properties,message
 
