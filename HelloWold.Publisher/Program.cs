@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -19,23 +20,24 @@ namespace HelloWold.Publisher//producer diğer adı bu kısımda mesajı yayınl
             {
                 var channel = connection.CreateModel();//yeni bir kanal oluşturuyoruz
 
-                //FanoutExchange de kuyruğu producer(publisher) oluşturmaz. Consumer(subscriber) isterse veri için kuyruk oluşturur. Ve consumer kapandığında consumer ayarına göre kuyruk silinir. Örn: Hava saatlik hava durumu yayınlayan bir projem var exchange ile kaç kişi bu veriye ulaşacak bilmediğim için veriyi isteyen kişiler kuyruk oluşturup veriyi alabilir. Biz sadece yayınlamakla mükellefiz.Bu yüzden kuyruk oluşturma alanı yorum satırı haline getirildi. Fanout veriyi direkt olarak oluşturulmuş her kuyruğa verir. Yani tüm kuyruklar procuder(publisher) dan gelen veriyi aynı dinler. 
+                //Header Exchange de  routekeyler mesajın headerında key value şeklinde producer(publish)den gönderilir. Kuyruk yine consumer tarafında oluşması daha mantıklı Bu sfer verileri alırken key value değerleri gönderirken consumer(subscriber tarafında) headerda gönderdiğimiz verileri alabilmek için o tarftada gönderdiğimiz key value değerleri kuyrukları çağırmak için yazılmalı. O tarafta ekstradan gönderilen key value değerlerinin hepsini mi kuyruğun headerinde arasın yoksa sadece herhangi biri olursa da o kuyruğu dinlesin mi? İşte bunun için "x-match" key var. Eğer "all" olarak value değerini  verirsek consumer tarafında. Consumerda Gönderdiğimiz tüm key value değerlerine sahip kuyruğu dinler. "any" yaparsak ise sadece bir tanesi olsa dahi o kuyruğu dinleyebiliriz.
+                //Dictionary<string, object> headers = new Dictionary<string, object>();
+                //headers.Add("format", "pdf");
+                //headers.Add("shape", "a4");
+                //headers.Add("x-match", "all");
 
-                // channel.QueueDeclare("Yenikuyruk", true, false,false);//kuyrukadı,durable:false ise kuyruk memoryde tutulu true ise fiziksel olarak bir yere kaydolur. Biz true yaptık.,exclusive:true olursa sadece bu kanal üzerinden bu kuyruhğa erişilir. false ise başka kanallardan da erişilebilir ve biz false yaptık. autodelete: true ise eğer kuyruğa bağlı olan subscriber düşerse kuyruk silinsin demek.False yaptık. Kuyruk oluştur.
+                channel.ExchangeDeclare("logs-header",type:ExchangeType.Headers,durable:true);
 
-                channel.ExchangeDeclare("logs-fanout",type:ExchangeType.Fanout,durable:true);
+                Dictionary<string, object> headers = new Dictionary<string, object>();
+                headers.Add("format", "pdf");
+                headers.Add("shape", "a4");
 
-                Enumerable.Range(1, 50).ToList().ForEach(x=> {
+                var properties = channel.CreateBasicProperties();
+                properties.Headers = headers;
 
-                    string message = $"Message {x}";
+                channel.BasicPublish("logs-header", string.Empty, properties, Encoding.UTF8.GetBytes("header mesajım"));//exchane,routeKey,properties,message
 
-                    var messagebody = Encoding.UTF8.GetBytes(message);
-
-                    channel.BasicPublish("logs-fanout","", null, messagebody);//exchange:logs-fanout , rouitingKey:"", IBasicProperties şimdilik null gönderelim. ve mesajımız
-                    Console.WriteLine("mesaj gönderildi.");
-                });
-
-                
+                Console.WriteLine("Mesaj Gönderildi.");
                 Console.ReadLine();
             }
 

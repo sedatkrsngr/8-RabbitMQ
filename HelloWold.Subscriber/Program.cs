@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
@@ -21,16 +22,20 @@ namespace HelloWold.Subscriber//consumer diğer adı
 
 
 
-                //Eğer burada da exchange oluşturursak hata vermez ama en azından fanout exchange için gereksiz
-
-                var randomQueueName = channel.QueueDeclare().QueueName;//random olarak kuyruk adı oluşturur.
-
-                channel.QueueBind(randomQueueName, "logs-fanout","",null);//Birden fazla  kez projeyi ayağı kaldırınca aynı kuyruk ismi olması sıkıntı yaratır diye random isimler veriyoruz ve exchange bağlıyoruz, subscribe(consumer) down olduğunda kuyruk böylelikle otomatik silinir. Böylelikle her ayrı proje ayrı kuyrukta veriyi alacak ama eğer belli bir projede veriyi çekeceksek kendimiz de isim verebiliriz ve bu kuyruğa gönderilmiş mesajlar kalıcı olacaktır ve bu kuyruğa gelen verileri consumer down olsa dahi başka bir consumerdan bu kuyruk adına ulaşarak veriyi alabiliriz.
-
                 channel.BasicQos(0, 1, false);//prefetchSize:0 yaptık yani consumer herhangi bir boyuttan veri alabilir.,prefetchCount: consumerların kaç tane mesaj alabileceğini belirtiyoruz. Bool Global ise: false ise kaçtane consumer varsa herbirine verdiğimiz  prefetchCount kadar mesaj iletilir. eğer false yaparsak verdiğimiz prefetchCount tüm consumerlara toplamı  prefetchCount kardar olacak kadar mesaj verilir. Örn: prefetchCount: verdik 3 consumer var. 2,2,1 şeklinde consumerlara toplam 5 olacak şekilde iletilir. Yani ne kadar çok subscriber(Consumer) proje ayaktaysa o kadar dinleme hızlı biter
 
                 var consumer = new EventingBasicConsumer(channel);
 
+                var randomQueueName = channel.QueueDeclare().QueueName;//random olarak kuyruk adı oluşturur.
+
+
+                Dictionary<string, object> headers = new Dictionary<string, object>();
+                headers.Add("format", "pdf");
+                headers.Add("shape", "a4");
+                headers.Add("x-match", "all");
+
+
+                channel.QueueBind(randomQueueName, "logs-header", "", headers);//Birden fazla  kez projeyi ayağı kaldırınca aynı kuyruk ismi olması sıkıntı yaratır diye random isimler veriyoruz ve exchange bağlıyoruz, subscribe(consumer) down olduğunda kuyruk böylelikle otomatik silinir. Böylelikle her ayrı proje ayrı kuyrukta veriyi alacak ama eğer belli bir projede veriyi çekeceksek kendimiz de isim verebiliriz ve bu kuyruğa gönderilmiş mesajlar kalıcı olacaktır ve bu kuyruğa gelen verileri consumer down olsa dahi başka bir consumerdan bu kuyruk adına ulaşarak veriyi alabiliriz.
                 channel.BasicConsume(randomQueueName, false, consumer);//kuyruk adı,autoAck:false Work Queue konusu için false yaptık ve eventte yeni tanım var
                 Console.WriteLine("Mesajlar dinleniyor");
 
