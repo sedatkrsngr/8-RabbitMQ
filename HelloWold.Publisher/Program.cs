@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
+
 
 namespace HelloWold.Publisher//producer diğer adı bu kısımda mesajı yayınlıyoruz
 {
@@ -30,7 +32,10 @@ namespace HelloWold.Publisher//producer diğer adı bu kısımda mesajı yayınl
                 properties.Headers = headers;
                 properties.Persistent = true;//Artık mesajlar kalıcı hale geliyor Header exchange kullanmasakta header kısmında bu bilgiyi gönderirsek mesajlar kalıcı hale gelir. Bu şekilde rabbit mq restart yese dahi mesajlar kaybolmayacak
 
-                channel.BasicPublish("logs-header", string.Empty, properties, Encoding.UTF8.GetBytes("header mesajım"));//exchane,routeKey,properties,message
+                //var product = new Product { Id=1,Name="Kalem",Price=100,Stock=10 }; 
+             //   var productJsonString = JsonSerializer.Serialize(product);  //kompleks tipi  stringe ardından da byte çevirerek alırız            
+
+            //    channel.BasicPublish("logs-header", string.Empty, properties, Encoding.UTF8.GetBytes(productJsonString));//exchane,routeKey,properties,message
 
                 Console.WriteLine("Mesaj Gönderildi.");
                 Console.ReadLine();

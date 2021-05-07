@@ -3,6 +3,7 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 
 namespace HelloWold.Subscriber//consumer diğer adı
@@ -42,6 +43,9 @@ namespace HelloWold.Subscriber//consumer diğer adı
                 consumer.Received += (object sender, BasicDeliverEventArgs e) =>
                     {
                         var message = Encoding.UTF8.GetString(e.Body.ToArray());
+
+                   //     Product product = JsonSerializer.Deserialize<Product>(message);//gelen mesajı burada tekrar nesneye cevirdik ardından istediğimiz yerde kullanabiliriz
+
                         channel.BasicAck(e.DeliveryTag, false);//false yaptığımız autoAck işlemi için eğer mesaj teslim edildiyse kuyruktan sil demek
                         
                         Console.WriteLine("Gelen Mesaj: " + message);
