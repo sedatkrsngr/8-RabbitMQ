@@ -1,9 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RabbitMQ.Client;
+using RabbitMQWeb.Watermark.BackgroundServices;
+using RabbitMQWeb.Watermark.Models;
+using RabbitMQWeb.Watermark.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,13 +25,27 @@ namespace RabbitMQWeb.Watermark
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(s=>new ConnectionFactory() { //Rabbitmq sunucusuna program ayaða kalkarken bir kez baðlansak yeter
+            Uri= new Uri(Configuration.GetConnectionString("ConStrRabbitMQ")),
+            DispatchConsumersAsync=true  //asenkron olarak consumerda method kullanýyorsak bunu true yapmalýyýz.Background serviste asenkron kullandýk
+            });;
+
+            services.AddSingleton<RabbitMQClientService>();//Servisimiz proje ayaðý kalkarken bir kere ayaðý kalksa yeterli
+            services.AddSingleton<RabbitMQPublisher>();//Servisimiz proje ayaðý kalkarken bir kere ayaðý kalksa yeterli
+            services.AddHostedService<ImageWaterMarkProcesssBackgroundService>();//backround servisimiz de ayaðý kalksýn
+
+            services.AddDbContext<AppDbContext>(opt=> {
+
+                opt.UseInMemoryDatabase(databaseName: "YeniDb");//verilerimizið bu projede inmemoryde kaydedelim.
+            });
+
+
+
             services.AddControllersWithViews();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -36,7 +55,6 @@ namespace RabbitMQWeb.Watermark
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
@@ -50,7 +68,7 @@ namespace RabbitMQWeb.Watermark
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Products}/{action=Index}/{id?}");
             });
         }
     }
